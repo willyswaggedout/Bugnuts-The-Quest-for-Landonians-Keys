@@ -216,6 +216,20 @@
   #s1sun .disc { position: absolute; left: 50%; top: 50%; width: 92px; height: 92px; margin: -46px 0 0 -46px; border-radius: 50%; background: radial-gradient(circle, #fff6b0 0, #ffd93b 70%, #ffc61a 100%); box-shadow: 0 0 0 5px rgba(255, 214, 51, .9); overflow: hidden; }
   #s1sun .disc img { position: absolute; left: 50%; bottom: -8%; width: 112%; transform: translateX(-50%); display: block; }
   @keyframes sunbob { 50% { transform: translateY(6px) rotate(2deg); } }
+  /* ---------- buff Emma shootout ---------- */
+  #buffEmma { position: absolute; left: 0; top: 0; transform-origin: 50% 100%; visibility: hidden; pointer-events: none; will-change: transform; transition-property: transform; transition-timing-function: linear; transition-duration: 0s; }
+  #buffEmma.on { visibility: visible; }
+  #buffEmma .binner { position: absolute; inset: 0; transform-origin: 50% 100%; }
+  #buffEmma.walking .binner { animation: walkhop .38s ease-in-out infinite; }
+  #buffEmma .bbody { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #buffEmma .bhead { position: absolute; left: 29.5%; top: -5%; width: 25%; -webkit-user-drag: none; }
+  #buffEmma #muzzle { opacity: 0; }
+  #buffEmma.bang #muzzle { opacity: 1; animation: muzz .25s steps(2) 2; }
+  #buffEmma.bang .binner { animation: recoil .3s ease-out; }
+  @keyframes muzz { 50% { transform: scale(1.3) rotate(16deg); transform-origin: 248px 92px; } }
+  @keyframes recoil { 30% { transform: rotate(-5deg) translateX(-2%); } }
+  #s1land.shot img { animation: shotspin .85s ease-in forwards !important; }
+  @keyframes shotspin { 25% { transform: rotate(-14deg) translateY(-10%); } 100% { transform: rotate(96deg) translateY(3%); } }
   /* ---------- fight intro cinematic ---------- */
   #s1cin { position: absolute; inset: 0; z-index: 58; pointer-events: none; visibility: hidden; overflow: hidden; }
   #s1cin.on { visibility: visible; pointer-events: auto; }
@@ -372,6 +386,46 @@
         <ellipse cx="60" cy="26" rx="26" ry="14" fill="#4aa046"/><ellipse cx="108" cy="28" rx="22" ry="12" fill="#4aa046"/><ellipse cx="80" cy="52" rx="70" ry="9" fill="#256b28"/>
       </svg>
       <div id="s1hint">&#9660;</div>
+    </div>
+    <div id="buffEmma">
+      <div class="binner">
+        <svg class="bbody" viewBox="0 0 280 300" xmlns="http://www.w3.org/2000/svg">
+          <!-- extended arm with cartoon pistol -->
+          <rect x="146" y="84" width="48" height="24" rx="12" fill="#e9b088"/>
+          <rect x="186" y="87" width="36" height="19" rx="9.5" fill="#e9b088"/>
+          <circle cx="152" cy="95" r="20" fill="#e9b088"/>
+          <circle cx="220" cy="96" r="11" fill="#e9b088"/>
+          <g fill="#2d3138">
+            <rect x="226" y="84" width="34" height="13" rx="3"/>
+            <rect x="255" y="82" width="4" height="4" rx="1"/>
+            <rect x="228" y="95" width="13" height="23" rx="4" transform="rotate(12 234 96)"/>
+          </g>
+          <g id="muzzle">
+            <polygon points="262,91 288,78 274,89 294,91 274,94 288,104" fill="#ffd22e"/>
+            <circle cx="266" cy="91" r="6" fill="#fff7c0"/>
+          </g>
+          <!-- neck + torso -->
+          <rect x="106" y="60" width="26" height="26" rx="8" fill="#e9b088"/>
+          <path d="M74 84 Q119 66 164 84 L172 102 Q176 132 163 152 L154 180 L84 180 L75 152 Q62 132 66 102 Z" fill="#e9b088"/>
+          <g stroke="#c98f63" stroke-width="3" fill="none" stroke-linecap="round">
+            <path d="M119 94 V142"/><path d="M89 112 Q119 126 149 112"/>
+            <path d="M96 146 H142 M98 160 H140"/>
+          </g>
+          <!-- flexed arm -->
+          <circle cx="74" cy="94" r="19" fill="#e9b088"/>
+          <ellipse cx="54" cy="112" rx="19" ry="25" fill="#e9b088" transform="rotate(-18 54 112)"/>
+          <ellipse cx="45" cy="80" rx="13" ry="23" fill="#e9b088" transform="rotate(14 45 80)"/>
+          <circle cx="48" cy="58" r="11" fill="#e9b088"/>
+          <!-- shorts, legs, shoes -->
+          <rect x="80" y="172" width="78" height="10" rx="4" fill="#23262d"/>
+          <rect x="80" y="180" width="78" height="42" rx="9" fill="#3b4b8f"/>
+          <path d="M88 220 q14 8 26 0 v38 q-13 7 -26 0 Z" fill="#e9b088"/>
+          <path d="M124 220 q14 8 26 0 v38 q-13 7 -26 0 Z" fill="#e9b088"/>
+          <ellipse cx="100" cy="266" rx="21" ry="10" fill="#fff"/><ellipse cx="138" cy="266" rx="21" ry="10" fill="#fff"/>
+          <rect x="79" y="262" width="42" height="7" rx="3" fill="#cfd4dc"/><rect x="117" y="262" width="42" height="7" rx="3" fill="#cfd4dc"/>
+        </svg>
+        <img class="bhead" id="buffHeadImg" alt="" draggable="false">
+      </div>
     </div>
   </div>
   <div id="say"><div class="who" id="whoName">LANDON</div><div id="sayText"></div><div id="more">&#9660;</div></div>
@@ -566,6 +620,7 @@
     heart()    { tone(80, 42, 0.16, 'sine', 0.4); tone(70, 38, 0.18, 'sine', 0.3, 0.2); },
     drone()    { tone(58, 46, 1.8, 'sawtooth', 0.05); tone(87, 70, 1.6, 'triangle', 0.05); },
     sting()    { tone(330, 322, 1.0, 'sawtooth', 0.045); tone(349, 340, 1.0, 'sawtooth', 0.04); tone(233, 228, 1.0, 'sawtooth', 0.04); },
+    shot()     { tone(2400, 120, 0.07, 'square', 0.3); tone(150, 38, 0.5, 'sine', 0.45, 0.02); tone(1000, 200, 0.18, 'sawtooth', 0.1, 0.01); },
     boom()     { tone(130, 34, 0.8, 'sine', 0.5); tone(900, 90, 0.35, 'sawtooth', 0.09); tone(60, 30, 1.0, 'triangle', 0.3); },
     gasp()     { tone(400, 900, 0.14, 'triangle', 0.09); }
   });
@@ -573,7 +628,7 @@
   const cut = $('#cut'), stage = $('#stage'), world = $('#world'), lan = $('#lan'), lanImg = $('#lanImg');
   const blanket = $('#blanket'), fxLayer = $('#fx'), sayBox = $('#say'), sayText = $('#sayText'), moreMark = $('#more');
   const fade = $('#fade'), whiteout = $('#whiteout'), stage1 = $('#stage1');
-  $('#s1landImg').src = LANDON_IMG; $('#s1emmaImg').src = EMMA_IMG; $('#s1sunImg').src = SUN_IMG; $('#cinLimg').src = LANDON_IMG; $('#cinEimg').src = EMMA_IMG;
+  $('#s1landImg').src = LANDON_IMG; $('#s1emmaImg').src = EMMA_IMG; $('#s1sunImg').src = SUN_IMG; $('#cinLimg').src = LANDON_IMG; $('#cinEimg').src = EMMA_IMG; $('#buffHeadImg').src = EMMA_IMG;
   lanImg.src = LANDON_IMG;
   const ZOOM = 'translate(-157px, -420px) scale(1.4)';   // camera pushes in: Landon and the bedside table
 
@@ -747,6 +802,8 @@
     s1land.style.height = lh + 'px'; s1land.style.width = (lh * 289 / 900) + 'px';
     const eh = 0.20 * H, ew = eh * 79 / 94;
     s1emma.style.height = eh + 'px'; s1emma.style.width = (ew * 1.7) + 'px';
+    const bh = 0.33 * H;
+    buff.style.height = bh + 'px'; buff.style.width = (bh * 280 / 300) + 'px';
     placeThing(s1emma, EMMA_AT.x, EMMA_AT.y, 0);
     placeThing(s1land, hereX, hereY, 0);
   }
@@ -821,6 +878,60 @@
     cin.classList.remove('on');
   }
 
+  const buff = $('#buffEmma');
+  let buffTimer = null;
+  function moveBuff(fx, fy, ms) {
+    placeThing(buff, fx, fy, ms);
+    buff.classList.add('walking');
+    clearTimeout(buffTimer);
+    return new Promise(res => { buffTimer = setTimeout(() => { buff.classList.remove('walking'); res(); }, ms + 30); });
+  }
+  function resetFight() {
+    cinReset();
+    buff.classList.remove('on', 'bang', 'walking'); clearTimeout(buffTimer);
+    s1land.classList.remove('shot');
+    s1emma.querySelector('.ewrap').style.visibility = '';
+    stage1.querySelectorAll('.mark').forEach(el => el.remove());
+  }
+  async function emmaShootout(id) {
+    try {
+      // Emma's head ducks behind the bush... and THIS walks out
+      s1emma.querySelector('.ewrap').style.visibility = 'hidden';
+      s1hint.classList.add('off');
+      placeThing(buff, EMMA_AT.x, EMMA_AT.y - 0.015, 0);
+      buff.classList.add('on');
+      sfx.spring();
+      await sleep(350, id);
+      await moveBuff(0.30, 0.77, 1500);
+      await sleep(650, id);
+      // she shoots first; Landon never stood a chance
+      buff.classList.add('bang');
+      sfx.shot();
+      cinFlash.classList.remove('on'); void cinFlash.offsetWidth; cinFlash.classList.add('on');
+      const bang = document.createElement('div');
+      bang.className = 'mark'; bang.textContent = 'BANG!'; bang.style.cssText = 'left:38%;top:40%;font-size:60px;color:#ffd22e;z-index:59;';
+      stage1.appendChild(bang);
+      setTimeout(() => bang.remove(), 1600);
+      s1land.classList.add('shot');
+      await sleep(900, id);
+      buff.classList.remove('bang');
+      await sleep(1300, id);
+      await say('...ow.', id, { who: 'LANDON' });
+      hideSay();
+      // white out and put everyone back
+      whiteout.classList.add('on');
+      await sleep(1500, id);
+      resetFight();
+      hereX = LAN_START.x; hereY = LAN_START.y;
+      s1Layout();
+      s1hint.classList.remove('off');
+      await sleep(250, id);
+      whiteout.classList.remove('on');
+      toast('Emma wins. Obviously.');
+      roam = true;
+    } catch (e) { if (e !== ABORT) throw e; }
+  }
+
   async function talkToEmma() {
     if (!roam) return;
     roam = false; s1hint.classList.add('off');
@@ -836,7 +947,7 @@
       await say('Whatever, chud.', id, { who: 'EMMA', noWait: true });
       const pick = await choose(id);
       hideSay();
-      if (pick === 'fight') { await fightIntro(id); toast('Fighting is coming soon!'); roam = true; }
+      if (pick === 'fight') { await fightIntro(id); await emmaShootout(id); }
       else { roam = true; walkTo(0.64, 0.88); }
     } catch (e) { if (e !== ABORT) throw e; }
   }
@@ -857,7 +968,7 @@
   async function goStage1(id) {
     try {
       hideSay(); fade.classList.remove('black');
-      roam = false; clearTimeout(walkTimer); s1land.classList.remove('walking'); s1choices.classList.remove('on'); s1toast.classList.remove('on'); cinReset();
+      roam = false; clearTimeout(walkTimer); s1land.classList.remove('walking'); s1choices.classList.remove('on'); s1toast.classList.remove('on'); resetFight();
       hereX = LAN_START.x; hereY = LAN_START.y;
       s1hint.classList.remove('off');
       sfx.whoosh();
@@ -878,7 +989,7 @@
   $('#skip').addEventListener('click', () => { const id = ++runId; dropPending(); hideSay(); goStage1(id); });
   $('#s1menu').addEventListener('click', () => {
     sfx.back(); runId++; dropPending(); hideSay();
-    roam = false; clearTimeout(walkTimer); s1choices.classList.remove('on'); s1toast.classList.remove('on'); cinReset();
+    roam = false; clearTimeout(walkTimer); s1choices.classList.remove('on'); s1toast.classList.remove('on'); resetFight();
     fade.classList.remove('black'); whiteout.classList.remove('on');
     document.body.classList.remove('incut');
     stage1.classList.remove('on'); stage1.setAttribute('aria-hidden', 'true');
