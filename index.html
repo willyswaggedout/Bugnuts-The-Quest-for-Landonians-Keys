@@ -205,17 +205,22 @@
   #more.on { opacity: 1; animation: nudge .9s ease-in-out infinite; }
   @keyframes nudge { 50% { transform: translateY(4px); } }
 
-  #endcard {
-    position: absolute; inset: 0; z-index: 65; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
-    background: rgba(10, 28, 66, .88); text-align: center; padding: 30px;
-    opacity: 0; visibility: hidden; transition: opacity .7s ease, visibility 0s .7s;
+  #whiteout { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 80; transition: opacity 1.3s ease; }
+  #whiteout.on { opacity: 1; }
+  #stage1 {
+    position: absolute; inset: 0; z-index: 50; overflow: hidden; opacity: 0; visibility: hidden;
+    background: linear-gradient(180deg, #6fb8ee 0, #c4e6f8 62%, #6fb04a 62%, #4f9a3a 100%);
   }
-  #endcard.on { opacity: 1; visibility: visible; transition: opacity .7s ease; }
-  .ec-sub { font-family: var(--display); font-size: 20px; letter-spacing: .18em; color: rgba(255,255,255,.75); }
-  .ec-title { font-family: var(--display); font-size: clamp(40px, 13vw, 64px); font-size: clamp(40px, 13cqw, 64px); line-height: 1.05; color: #fff; text-shadow: 0 4px 16px rgba(0,0,0,.35); }
-  .ec-note { font-family: var(--display); font-size: 20px; color: #fde68a; margin: 6px 0 18px; }
-  .ec-btns { display: flex; gap: 14px; }
-  .ec-btns .btn.small { background: #fff; color: #0f2a55; }
+  #stage1.on { opacity: 1; visibility: visible; }
+  #s1land { position: absolute; left: 50%; bottom: 13%; height: 46%; aspect-ratio: 289 / 900; transform: translateX(-50%); transform-origin: 50% 100%; animation: jelly 2.4s ease-in-out infinite; }
+  #s1land img { width: 100%; height: 100%; display: block; -webkit-user-drag: none; pointer-events: none; }
+  #s1title {
+    position: absolute; left: 0; right: 0; top: 24%; text-align: center; font-family: var(--display);
+    font-size: clamp(44px, 15vw, 80px); font-size: clamp(44px, 15cqw, 80px); color: #fff; letter-spacing: .04em;
+    text-shadow: 0 4px 0 #0f2a55, 0 8px 22px rgba(0,0,0,.35);
+    opacity: 0; transform: scale(.6); transition: opacity .5s ease, transform .6s cubic-bezier(.2, 1.6, .4, 1);
+  }
+  #s1title.on { opacity: 1; transform: scale(1); }
   .ec-btns .btn.small:active { background: #dbeafe; }
   body.incut #menu, body.incut #bubbles { visibility: hidden; }
 </style>
@@ -291,14 +296,14 @@
     </div>
     <button class="skip cutbtn" id="skip">SKIP</button>
     <div id="say"><div class="who" id="whoName">LANDON</div><div id="sayText"></div><div id="more">&#9660;</div></div>
-    <div id="endcard">
-      <div class="ec-sub">CHAPTER 1</div>
-      <div class="ec-title">The Missing Keys</div>
-      <div class="ec-note">To be continued...</div>
-      <div class="ec-btns"><button class="btn small cutbtn" id="replay">REPLAY</button><button class="btn small cutbtn" id="toMenu">MENU</button></div>
-    </div>
     <div id="fade"></div>
   </div>
+  <div id="stage1" aria-hidden="true">
+    <button class="skip cutbtn" id="s1menu">MENU</button>
+    <div id="s1title">STAGE 1</div>
+    <div id="s1land"><img id="s1img" alt="Landon" draggable="false"></div>
+  </div>
+  <div id="whiteout"></div>
 </div>
 
 <script>
@@ -389,6 +394,7 @@
     back()   { tone(520, 300, 0.1, 'square', 0.05); },
     start()  { [392, 523, 659, 784].forEach((f, i) => tone(f, f * 1.005, 0.14, 'square', 0.06, i * 0.09)); },
     note(i)  { const f = [330, 392, 440, 523][i % 4]; tone(f, f * 1.005, 0.22, 'triangle', 0.09); },
+    whoosh() { tone(250, 1400, 0.9, 'sine', 0.06); tone(500, 2000, 0.9, 'triangle', 0.03); },
     wah()    { tone(300, 150, 0.45, 'sawtooth', 0.06); }
   };
 
@@ -479,7 +485,8 @@
 
   const cut = $('#cut'), stage = $('#stage'), world = $('#world'), lan = $('#lan'), lanImg = $('#lanImg');
   const blanket = $('#blanket'), fxLayer = $('#fx'), sayBox = $('#say'), sayText = $('#sayText'), moreMark = $('#more');
-  const endcard = $('#endcard'), fade = $('#fade');
+  const fade = $('#fade'), whiteout = $('#whiteout'), stage1 = $('#stage1'), s1title = $('#s1title');
+  $('#s1img').src = LANDON_IMG;
   lanImg.src = LANDON_IMG;
   const ZOOM = 'translate(-157px, -420px) scale(1.4)';   // camera pushes in: Landon and the bedside table
 
@@ -526,7 +533,7 @@
   }
 
   cut.addEventListener('click', e => {
-    if (e.target.closest('.cutbtn') || endcard.classList.contains('on')) return;
+    if (e.target.closest('.cutbtn')) return;
     if (typing) { typing.finish(); return; }
     if (pendingTap) {
       const p = pendingTap; pendingTap = null;
@@ -559,13 +566,14 @@
     lanImg.className = 'sleep';
     pose({ x: 240, y: 538, rot: -90, sx: 0.62, ms: 0, z: 4 });
     void lan.offsetWidth; lan.style.transitionDuration = '';
-    hideSay(); endcard.classList.remove('on');
+    hideSay();
   }
 
   async function startCutscene() {
     const id = ++runId;
     dropPending();
     fitStage();
+    stage1.classList.remove('on'); whiteout.classList.remove('on'); s1title.classList.remove('on');
     fade.classList.add('black');
     cut.classList.add('on'); cut.setAttribute('aria-hidden', 'false');
     pauseMusic();
@@ -625,19 +633,38 @@
       await sleep(2800, id);
       lanImg.className = 'idle';
 
-      // 6. End card (the rest of the game comes later)
-      endcard.classList.add('on');
+      // 6. flash to white, then on to Stage 1
+      await goStage1(id);
     } catch (e) { if (e !== ABORT) throw e; }
   }
 
-  $('#skip').addEventListener('click', () => { runId++; dropPending(); hideSay(); fade.classList.remove('black'); endcard.classList.add('on'); });
-  $('#replay').addEventListener('click', () => { sfx.blip(); startCutscene(); });
-  $('#toMenu').addEventListener('click', () => {
+  async function goStage1(id) {
+    try {
+      hideSay(); fade.classList.remove('black');
+      s1title.classList.remove('on');
+      sfx.whoosh();
+      whiteout.classList.add('on');
+      await sleep(1500, id);
+      // swap scenes while the screen is fully white
+      cut.style.transition = 'none'; cut.classList.remove('on'); cut.setAttribute('aria-hidden', 'true');
+      stage1.style.transition = 'none'; stage1.classList.add('on'); stage1.setAttribute('aria-hidden', 'false');
+      void cut.offsetWidth; cut.style.transition = ''; stage1.style.transition = '';
+      await sleep(300, id);
+      whiteout.classList.remove('on');
+      await sleep(1100, id);
+      sfx.start(); s1title.classList.add('on');
+      await sleep(2600, id);
+      s1title.classList.remove('on');
+    } catch (e) { if (e !== ABORT) throw e; }
+  }
+
+  $('#skip').addEventListener('click', () => { const id = ++runId; dropPending(); hideSay(); goStage1(id); });
+  $('#s1menu').addEventListener('click', () => {
     sfx.back(); runId++; dropPending(); hideSay();
-    fade.classList.remove('black');
+    fade.classList.remove('black'); whiteout.classList.remove('on'); s1title.classList.remove('on');
     document.body.classList.remove('incut');
+    stage1.classList.remove('on'); stage1.setAttribute('aria-hidden', 'true');
     cut.classList.remove('on'); cut.setAttribute('aria-hidden', 'true');
-    endcard.classList.remove('on');
     resumeMusic();
   });
   $('#start').addEventListener('click', () => { initAudio(); sfx.start(); startCutscene(); });
